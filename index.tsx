@@ -38,6 +38,11 @@ document.addEventListener('DOMContentLoaded', () => {
     checkAuth();
     setupEventListeners();
     loadSettings();
+    
+    // Pastikan chart dibuat di awal
+    setTimeout(() => {
+        initChart();
+    }, 500);
 });
 
 function setDefaultDates() {
@@ -98,14 +103,14 @@ function handleLogin(e: Event) {
         localStorage.setItem('piket_is_logged_in', 'true');
         showApp();
     } else {
-        document.getElementById('login-error')?.classList.remove('hidden');
+        const err = document.getElementById('login-error');
+        if (err) err.classList.remove('hidden');
     }
 }
 
 function showApp() {
     document.getElementById('login-overlay')?.classList.add('hidden');
     document.getElementById('main-app')?.classList.remove('hidden');
-    initChart();
     fetchInitialData();
     router('dashboard');
 }
@@ -115,7 +120,7 @@ function checkAuth() {
 }
 
 function handleLogout() {
-    if (confirm('Keluar dari aplikasi?')) {
+    if (confirm('Keluar dari sistem Buku Piket?')) {
         localStorage.removeItem('piket_is_logged_in');
         window.location.reload();
     }
@@ -137,7 +142,7 @@ async function fetchInitialData() {
         };
         refreshDisplay();
     } catch (e) {
-        console.error("Gagal ambil data awal");
+        console.error("Gagal ambil data cloud awal");
     } finally {
         statusEl?.classList.add('hidden');
     }
@@ -156,25 +161,46 @@ function refreshDisplay() {
     if (g) g.innerText = displayData.absenGuru.length.toString();
     if (t) t.innerText = displayData.bukuTamu.length.toString();
 
-    if (chartInstance) {
-        const counts: any = {};
-        displayData.logSiswa.forEach(x => counts[x.jenis] = (counts[x.jenis] || 0) + 1);
-        chartInstance.data.labels = Object.keys(counts);
-        chartInstance.data.datasets[0].data = Object.values(counts);
-        chartInstance.update();
-    }
+    updateChart();
 }
 
 function initChart() {
     const canvas = document.getElementById('chartPelanggaran') as HTMLCanvasElement;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
     if (chartInstance) chartInstance.destroy();
     chartInstance = new Chart(ctx, {
         type: 'bar',
-        data: { labels: [], datasets: [{ label: 'Jumlah', data: [], backgroundColor: '#3b82f6' }] },
-        options: { responsive: true, maintainAspectRatio: false }
+        data: { 
+            labels: ['Terlambat', 'Izin', 'Sakit', 'Atribut', 'Berat'], 
+            datasets: [{ 
+                label: 'Jumlah Kejadian', 
+                data: [0, 0, 0, 0, 0], 
+                backgroundColor: '#3b82f6',
+                borderRadius: 8
+            }] 
+        },
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, grid: { display: false } } }
+        }
     });
+}
+
+function updateChart() {
+    if (!chartInstance) return;
+    const counts: any = { 'Terlambat': 0, 'Izin': 0, 'Sakit': 0, 'Pelanggaran Atribut': 0, 'Pelanggaran Berat': 0 };
+    displayData.logSiswa.forEach(x => {
+        if (counts[x.jenis] !== undefined) counts[x.jenis]++;
+    });
+    
+    chartInstance.data.labels = Object.keys(counts);
+    chartInstance.data.datasets[0].data = Object.values(counts);
+    chartInstance.update();
 }
 
 function router(pageId: string) {
@@ -184,11 +210,15 @@ function router(pageId: string) {
     document.getElementById(`nav-${pageId}`)?.classList.add('active');
     
     const icons: any = { dashboard: 'chart-pie', siswa: 'user-shield', guru: 'chalkboard-user', tamu: 'id-card-clip', laporan: 'wand-sparkles', pengaturan: 'cog' };
-    const titles: any = { dashboard: 'Dashboard', siswa: 'Siswa', guru: 'Guru', tamu: 'Tamu', laporan: 'Asisten AI', pengaturan: 'Pengaturan' };
+    const titles: any = { dashboard: 'Dashboard Utama', siswa: 'Log Siswa', guru: 'Data Guru', tamu: 'Buku Tamu', laporan: 'Asisten AI', pengaturan: 'Sistem' };
     const ic = document.getElementById('page-icon');
     const pt = document.getElementById('page-title');
     if (ic) ic.className = `fas fa-${icons[pageId]}`;
     if (pt) pt.innerText = titles[pageId];
+
+    if (pageId === 'dashboard') {
+        setTimeout(initChart, 200);
+    }
 }
 
 function handleSiswaSubmit(e: Event) {
@@ -197,12 +227,12 @@ function handleSiswaSubmit(e: Event) {
         nama: (document.getElementById('siswa-nama') as HTMLInputElement).value,
         kelas: (document.getElementById('siswa-kelas') as HTMLInputElement).value,
         jenis: (document.getElementById('siswa-jenis') as HTMLSelectElement).value,
-        keterangan: (document.getElementById('siswa-ket') as HTMLInputElement).value,
+        keterangan: (document.getElementById('siswa-ket') as HTMLTextAreaElement).value,
         timestamp: new Date().toISOString()
     });
     refreshDisplay();
     (e.target as HTMLFormElement).reset();
-    alert('Tersimpan lokal.');
+    alert('Data siswa tercatat secara lokal.');
 }
 
 function handleGuruSubmit(e: Event) {
@@ -216,7 +246,7 @@ function handleGuruSubmit(e: Event) {
     });
     refreshDisplay();
     (e.target as HTMLFormElement).reset();
-    alert('Data guru tersimpan.');
+    alert('Data guru tercatat.');
 }
 
 function handleTamuSubmit(e: Event) {
@@ -230,10 +260,9 @@ function handleTamuSubmit(e: Event) {
     });
     refreshDisplay();
     (e.target as HTMLFormElement).reset();
-    alert('Tamu terdaftar.');
+    alert('Data tamu berhasil disimpan.');
 }
 
-// Fungsi filter tanggal yang lebih kuat
 function filterByDateRange(data: any[], start: string, end: string) {
     if (!start || !end) return data;
     const startDate = new Date(start);
@@ -258,7 +287,7 @@ async function generateAIReport() {
     const filteredKejadian = filterByDateRange(displayData.logKejadian, startVal, endVal);
 
     if (filteredSiswa.length === 0 && filteredGuru.length === 0 && filteredTamu.length === 0 && filteredKejadian.length === 0) {
-        alert("Tidak ditemukan data pada rentang tanggal tersebut (" + startVal + " s/d " + endVal + "). Pastikan data sudah disinkronkan ke database.");
+        alert("Ops! Tidak ada data pada rentang " + startVal + " sampai " + endVal + ". Coba sinkronkan data atau ganti tanggal.");
         return;
     }
 
@@ -274,28 +303,28 @@ async function generateAIReport() {
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         
         const prompt = `
-            Tugas: Buat laporan piket sekolah formal untuk UPT SMPN 4 MAPPEDECENG.
-            Rentang Waktu Laporan: ${startVal} sampai ${endVal}
-            Petugas Piket: ${namaGuruPiket}
+            Tugas: Susun laporan resmi harian Guru Piket untuk UPT SMPN 4 MAPPEDECENG.
+            Periode Laporan: ${startVal} s/d ${endVal}
+            Petugas Piket Utama: ${namaGuruPiket}
             
-            Gunakan data mentah berikut:
-            - Pelanggaran Siswa: ${JSON.stringify(filteredSiswa)}
-            - Ketidakhadiran Guru: ${JSON.stringify(filteredGuru)}
-            - Tamu Sekolah: ${JSON.stringify(filteredTamu)}
-            - Narasi Kejadian: ${JSON.stringify(filteredKejadian)}
+            Gunakan data ini sebagai sumber:
+            - Catatan Kedisiplinan Siswa: ${JSON.stringify(filteredSiswa)}
+            - Absensi Guru & Pengganti (Inval): ${JSON.stringify(filteredGuru)}
+            - Kunjungan Tamu: ${JSON.stringify(filteredTamu)}
+            - Narasi Kejadian Khusus: ${JSON.stringify(filteredKejadian)}
             
-            PERATURAN FORMAT SANGAT KETAT:
-            1. JANGAN GUNAKAN SIMBOL MARKDOWN APAPUN. Dilarang keras menggunakan simbol: #, ##, ###, **, __, atau *.
-            2. Gunakan Huruf Kapital untuk Judul Bagian.
-            3. Gunakan penomoran manual (1., 2., 3.) untuk daftar.
-            4. Gunakan Bahasa Indonesia yang sangat formal, rapi, dan santun.
-            5. Struktur Laporan:
-               - JUDUL: LAPORAN HARIAN GURU PIKET
-               - BAGIAN 1: PENDAHULUAN (Cantumkan tanggal dan petugas)
-               - BAGIAN 2: REKAPITULASI SISWA (Sebutkan nama siswa, kelas, dan jenis kendala)
-               - BAGIAN 3: REKAPITULASI GURU & TAMU
-               - BAGIAN 4: CATATAN PERISTIWA PENTING
-               - BAGIAN 5: KESIMPULAN & SARAN TINDAK LANJUT
+            KETENTUAN FORMAT (SANGAT PENTING):
+            1. DILARANG MENGGUNAKAN SIMBOL MARKDOWN (Tanpa #, tanpa *, tanpa **).
+            2. Gunakan huruf kapital untuk setiap JUDUL BAGIAN.
+            3. Gunakan penomoran manual seperti 1., 2., 3. atau a., b., c.
+            4. Tulis dalam Bahasa Indonesia yang formal, santun, dan sangat rapi.
+            5. Susunan Laporan:
+               - LAPORAN HARIAN GURU PIKET UPT SMPN 4 MAPPEDECENG
+               - I. IDENTITAS PETUGAS DAN WAKTU
+               - II. REKAPITULASI KEDISIPLINAN SISWA (Rangkum secara jelas per kategori)
+               - III. REKAPITULASI KEHADIRAN GURU & TAMU (Sebutkan siapa saja dan keperluannya)
+               - IV. CATATAN PERISTIWA MENONJOL (Narasi dari kejadian khusus)
+               - V. EVALUASI DAN REKOMENDASI UNTUK SEKOLAH
         `;
         
         const response = await ai.models.generateContent({
@@ -303,18 +332,19 @@ async function generateAIReport() {
             contents: prompt,
         });
 
-        let text = response.text || "Gagal menghasilkan laporan.";
+        const rawText = response.text || "Terjadi kesalahan teknis saat AI menyusun laporan.";
         
-        // Pembersihan Paksa via Regex untuk memastikan tidak ada Markdown yang lolos
-        const cleanText = text
-            .replace(/[#*`_]/g, '') // Hapus pagar, bintang, backtick, underscore
-            .replace(/^\s+|\s+$/g, ''); // Hapus spasi di awal/akhir
+        // Pembersihan simbol tambahan secara otomatis jika AI membandel
+        const cleanText = rawText
+            .replace(/[#*`_]/g, '')
+            .replace(/\n{3,}/g, '\n\n')
+            .trim();
 
         localData.laporanAI = cleanText;
         if (resultArea) resultArea.innerText = cleanText;
         document.getElementById('btn-copy-report')?.classList.remove('hidden');
     } catch (e: any) {
-        alert('Maaf, AI mengalami kendala: ' + e.message);
+        alert('Gagal Generate AI: ' + e.message);
     } finally {
         loader?.classList.add('hidden');
         resultArea?.classList.remove('hidden');
@@ -341,12 +371,12 @@ async function syncData() {
             mode: 'no-cors',
             body: JSON.stringify(payload)
         });
-        alert('SINKRONISASI BERHASIL! Data sekarang tersimpan di Google Sheets.');
+        alert('DATA BERHASIL DISINKRONKAN KE GOOGLE SHEETS!');
         localData = { logSiswa: [], absenGuru: [], bukuTamu: [], logKejadian: [], laporanAI: '' };
         (document.getElementById('input-kejadian-penting') as HTMLTextAreaElement).value = '';
         setTimeout(() => fetchInitialData(), 1500);
     } catch (e) {
-        alert('Gagal mengirim data. Periksa koneksi internet atau URL API.');
+        alert('Gagal sinkronisasi. Pastikan URL Script sudah benar.');
     } finally {
         statusEl?.classList.add('hidden');
     }
@@ -371,7 +401,7 @@ function saveGuruPiket() {
         namaGuruPiket = input.value;
         localStorage.setItem('piket_guru_nama', namaGuruPiket);
         updateGuruDisplay();
-        alert('Nama Guru Piket berhasil diset!');
+        alert('Nama Guru Piket aktif hari ini telah disimpan.');
     }
 }
 
@@ -384,7 +414,7 @@ function copyReportToClipboard() {
     const t = document.getElementById('ai-result')?.innerText;
     if (t) {
         navigator.clipboard.writeText(t).then(() => {
-            alert('Laporan berhasil disalin ke papan klip! Silakan buka WhatsApp dan pilih Tempel/Paste.');
+            alert('Laporan berhasil disalin! Silakan tempelkan (Paste) di WhatsApp.');
         });
     }
 }
