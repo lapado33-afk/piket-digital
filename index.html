@@ -29,9 +29,11 @@
             background-image: linear-gradient(#f8fafc 1px, transparent 1px);
             background-size: 100% 1.6rem;
             line-height: 1.6rem;
-            padding: 2rem;
+            padding: 2.5rem;
             box-shadow: inset 0 0 40px rgba(0,0,0,0.02);
             font-family: 'Georgia', serif;
+            border: 1px solid #e2e8f0;
+            border-radius: 1rem;
         }
 
         .sidebar-gradient {
@@ -78,27 +80,42 @@
 
     <!-- LOGIN PAGE -->
     <div id="login-overlay" class="fixed inset-0 z-[100] login-bg flex items-center justify-center p-6">
-        <div class="bg-white/10 backdrop-blur-xl p-8 md:p-12 rounded-[2.5rem] shadow-2xl border border-white/20 w-full max-w-md fade-in text-center">
-            <div class="mb-10">
-                <div class="w-24 h-24 bg-white rounded-3xl flex items-center justify-center shadow-2xl mx-auto mb-6 transform -rotate-3 overflow-hidden p-2">
-                    <img src="https://iili.io/fUsOUBa.png" alt="Logo" class="w-full h-full object-contain">
+        <div class="w-full max-w-md space-y-4">
+            <div class="bg-white/10 backdrop-blur-xl p-8 md:p-10 rounded-[2.5rem] shadow-2xl border border-white/20 fade-in text-center">
+                <div class="mb-8">
+                    <div class="w-20 h-20 bg-white rounded-3xl flex items-center justify-center shadow-2xl mx-auto mb-6 transform -rotate-3 overflow-hidden p-2">
+                        <img src="https://iili.io/fUsOUBa.png" alt="Logo" class="w-full h-full object-contain">
+                    </div>
+                    <h1 class="text-2xl font-black text-white tracking-tighter uppercase">BUKU PIKET <span class="text-blue-400">DIGITAL</span></h1>
+                    <p class="text-blue-200/60 text-[10px] font-bold uppercase tracking-widest mt-2">UPT SMPN 4 MAPPEDECENG</p>
                 </div>
-                <h1 class="text-2xl font-black text-white tracking-tighter uppercase">BUKU PIKET <span class="text-blue-400">DIGITAL</span></h1>
-                <p class="text-blue-200/60 text-xs font-bold uppercase tracking-widest mt-2">UPT SMPN 4 MAPPEDECENG</p>
+
+                <form id="login-form" class="space-y-5">
+                    <div class="relative text-left">
+                        <label class="text-[9px] font-black text-white/40 uppercase ml-4 mb-1 block">Username</label>
+                        <i class="fas fa-user absolute left-4 bottom-4 text-white/40"></i>
+                        <input type="text" id="login-user" class="w-full bg-white/10 border border-white/20 p-4 pl-12 rounded-2xl text-white placeholder-white/20 outline-none focus:ring-2 focus:ring-blue-500 transition-all font-bold" placeholder="Masukkan username">
+                    </div>
+                    <div class="relative text-left">
+                        <label class="text-[9px] font-black text-white/40 uppercase ml-4 mb-1 block">Password</label>
+                        <i class="fas fa-lock absolute left-4 bottom-4 text-white/40"></i>
+                        <input type="password" id="login-pass" class="w-full bg-white/10 border border-white/20 p-4 pl-12 rounded-2xl text-white placeholder-white/20 outline-none focus:ring-2 focus:ring-blue-500 transition-all font-bold" placeholder="Masukkan password">
+                    </div>
+                    <div id="login-error" class="hidden bg-red-500/20 border border-red-500/50 p-3 rounded-xl text-red-200 text-xs font-bold">Kombinasi salah!</div>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-white text-white hover:text-blue-900 py-5 rounded-2xl font-black transition-all uppercase tracking-widest text-sm shadow-xl">MASUK SEKARANG</button>
+                </form>
             </div>
 
-            <form id="login-form" class="space-y-6">
-                <div class="relative">
-                    <i class="fas fa-user absolute left-4 top-1/2 -translate-y-1/2 text-white/40"></i>
-                    <input type="text" id="login-user" class="w-full bg-white/10 border border-white/20 p-4 pl-12 rounded-2xl text-white placeholder-white/30 outline-none focus:ring-2 focus:ring-blue-500 transition-all font-bold" placeholder="Username">
+            <!-- Petunjuk Login -->
+            <div class="bg-black/20 backdrop-blur-md p-4 rounded-2xl border border-white/10 flex items-center gap-4 fade-in" style="animation-delay: 0.2s">
+                <div class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400">
+                    <i class="fas fa-info-circle"></i>
                 </div>
-                <div class="relative">
-                    <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-white/40"></i>
-                    <input type="password" id="login-pass" class="w-full bg-white/10 border border-white/20 p-4 pl-12 rounded-2xl text-white placeholder-white/30 outline-none focus:ring-2 focus:ring-blue-500 transition-all font-bold" placeholder="Password">
+                <div>
+                    <p class="text-[10px] font-black text-white/40 uppercase tracking-widest">Petunjuk Login</p>
+                    <p class="text-xs font-bold text-white/80">User: <span class="text-blue-400">admin</span> | Pass: <span class="text-blue-400">piket4</span></p>
                 </div>
-                <div id="login-error" class="hidden bg-red-500/20 border border-red-500/50 p-3 rounded-xl text-red-200 text-xs font-bold">Salah!</div>
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-50 text-white hover:text-blue-700 py-5 rounded-2xl font-black transition-all uppercase tracking-widest text-sm shadow-xl">MASUK</button>
-            </form>
+            </div>
         </div>
     </div>
 
@@ -106,11 +123,14 @@
     <div id="main-app" class="hidden h-screen flex overflow-hidden">
         <aside class="w-72 sidebar-gradient text-white flex flex-col shadow-2xl z-20">
             <div class="p-8 border-b border-white/10">
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-4">
                     <div class="w-10 h-10 bg-white rounded-lg p-1 overflow-hidden shrink-0">
                         <img src="https://iili.io/fUsOUBa.png" class="w-full h-full object-contain">
                     </div>
-                    <h1 class="text-xl font-black tracking-tighter uppercase leading-none">PIKET<br><span class="text-blue-400 text-sm">DIGITAL</span></h1>
+                    <div>
+                        <h1 class="text-lg font-black tracking-tighter uppercase leading-none">PIKET DIGITAL</h1>
+                        <p class="text-[9px] font-bold text-blue-400 uppercase tracking-widest mt-1">UPT SMPN 4 MAPPEDECENG</p>
+                    </div>
                 </div>
             </div>
             
@@ -132,18 +152,18 @@
                 </button>
             </nav>
 
-            <div class="p-6 space-y-2">
-                <button id="nav-pengaturan" class="w-full text-white/50 hover:text-white text-[10px] font-black uppercase tracking-widest py-2">
-                    <i class="fas fa-cog mr-2"></i> Pengaturan
+            <div class="p-6 border-t border-white/10">
+                <button id="nav-pengaturan" class="w-full text-white/50 hover:text-white text-[10px] font-black uppercase tracking-widest py-2 mb-2 flex items-center justify-center gap-2">
+                    <i class="fas fa-cog"></i> Pengaturan
                 </button>
                 <button id="btn-logout" class="w-full bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white py-3 rounded-xl font-black text-xs uppercase transition-all">
-                    KELUAR
+                    KELUAR APPS
                 </button>
             </div>
         </aside>
 
         <main class="flex-1 flex flex-col bg-[#f8fafc] overflow-hidden">
-            <header class="bg-white border-b p-5 flex justify-between items-center">
+            <header class="bg-white border-b p-5 flex justify-between items-center shadow-sm z-10">
                 <div class="flex items-center gap-4">
                     <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-lg">
                         <i id="page-icon" class="fas fa-chart-pie"></i>
@@ -154,7 +174,7 @@
                     </div>
                 </div>
                 <div id="sync-status" class="hidden px-4 py-2 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase flex items-center">
-                    <div class="loader mr-3 w-3 h-3 border-2"></div> Sinkronisasi...
+                    <div class="loader mr-3 w-3 h-3 border-2"></div> Sinkronisasi Database...
                 </div>
             </header>
 
@@ -162,149 +182,219 @@
                 <!-- Dashboard -->
                 <div id="page-dashboard" class="page-section active fade-in">
                     <div class="bg-blue-700 text-white p-8 rounded-3xl shadow-xl mb-8 flex flex-col md:flex-row items-center justify-between gap-6">
-                        <div>
-                            <h3 class="text-2xl font-black">Halo, Guru Piket!</h3>
-                            <p class="text-blue-100 text-sm">Mari kita mulai pendataan hari ini dengan teliti.</p>
+                        <div class="max-w-md">
+                            <h3 class="text-2xl font-black mb-1">Halo, Selamat Bertugas!</h3>
+                            <p class="text-blue-100 text-sm opacity-80">Catat setiap aktivitas hari ini secara digital dan otomatis.</p>
                         </div>
-                        <div class="flex gap-2 w-full md:w-auto">
-                            <input type="text" id="input-guru-piket" class="bg-white/20 border border-white/30 p-3 rounded-xl outline-none font-bold placeholder-white/50 w-full" placeholder="Ketik nama Anda...">
-                            <button id="btn-save-guru" class="bg-white text-blue-700 px-6 py-3 rounded-xl font-black">SET</button>
+                        <div class="flex gap-2 w-full md:w-auto bg-white/10 p-2 rounded-2xl border border-white/20">
+                            <input type="text" id="input-guru-piket" class="bg-transparent text-white border-none p-3 outline-none font-bold placeholder-white/40 w-full" placeholder="Nama Guru Piket...">
+                            <button id="btn-save-guru" class="bg-white text-blue-700 px-6 py-3 rounded-xl font-black text-xs uppercase hover:bg-blue-50 transition-all">SET</button>
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                            <p class="text-[10px] font-black text-slate-400 uppercase mb-2">Siswa</p>
-                            <h3 id="stat-siswa" class="text-3xl font-black">0</h3>
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-5 hover:shadow-md transition-all">
+                            <div class="w-14 h-14 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center text-2xl shadow-inner">
+                                <i class="fas fa-user-graduate"></i>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-black text-slate-400 uppercase mb-1">Total Log Siswa</p>
+                                <h3 id="stat-siswa" class="text-3xl font-black text-slate-800">0</h3>
+                            </div>
                         </div>
-                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                            <p class="text-[10px] font-black text-slate-400 uppercase mb-2">Tamu</p>
-                            <h3 id="stat-tamu" class="text-3xl font-black">0</h3>
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-5 hover:shadow-md transition-all">
+                            <div class="w-14 h-14 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center text-2xl shadow-inner">
+                                <i class="fas fa-address-book"></i>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-black text-slate-400 uppercase mb-1">Data Buku Tamu</p>
+                                <h3 id="stat-tamu" class="text-3xl font-black text-slate-800">0</h3>
+                            </div>
                         </div>
-                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                            <p class="text-[10px] font-black text-slate-400 uppercase mb-2">Guru</p>
-                            <h3 id="stat-guru" class="text-3xl font-black">0</h3>
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex items-center gap-5 hover:shadow-md transition-all">
+                            <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl shadow-inner">
+                                <i class="fas fa-chalkboard-teacher"></i>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-black text-slate-400 uppercase mb-1">Absensi Guru</p>
+                                <h3 id="stat-guru" class="text-3xl font-black text-slate-800">0</h3>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="bg-white p-8 rounded-2xl shadow-sm mb-8">
-                        <h3 class="font-black text-slate-800 uppercase mb-4 tracking-tighter">Kejadian Penting Hari Ini</h3>
-                        <div class="flex flex-wrap gap-2 mb-4">
-                            <button onclick="addKejadianCepat('KBM Berjalan Lancar & Kondusif')" class="chip-btn bg-green-50 text-green-700 border-green-200 hover:bg-green-600 hover:text-white">Lancar & Aman</button>
-                            <button onclick="addKejadianCepat('Hujan deras menggangu apel pagi')" class="chip-btn bg-blue-50 text-blue-700 border-blue-200">Cuaca Buruk</button>
-                            <button onclick="addKejadianCepat('Ditemukan siswa membawa barang terlarang')" class="chip-btn bg-red-50 text-red-700 border-red-200">Razia</button>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                        <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
+                            <div class="flex justify-between items-center mb-6">
+                                <h3 class="font-black text-slate-800 uppercase tracking-tighter flex items-center gap-2">
+                                    <i class="fas fa-chart-bar text-blue-600"></i> Statistik Pelanggaran
+                                </h3>
+                                <div class="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
+                            </div>
+                            <div class="h-[280px] relative">
+                                <canvas id="chartPelanggaran"></canvas>
+                            </div>
                         </div>
-                        <textarea id="input-kejadian-penting" class="w-full h-32 bg-slate-50 border p-4 rounded-xl outline-none focus:bg-white font-bold" placeholder="Tuliskan peristiwa menonjol..."></textarea>
+                        <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
+                            <h3 class="font-black text-slate-800 uppercase mb-4 tracking-tighter flex items-center gap-2">
+                                <i class="fas fa-edit text-blue-600"></i> Kejadian Penting Hari Ini
+                            </h3>
+                            <div class="flex flex-wrap gap-2 mb-5">
+                                <button onclick="addKejadianCepat('KBM Berjalan Lancar & Kondusif')" class="chip-btn bg-green-50 text-green-700 border-green-200 hover:bg-green-600 hover:text-white">KBM Lancar</button>
+                                <button onclick="addKejadianCepat('Hujan deras menggangu apel pagi')" class="chip-btn bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-600 hover:text-white">Cuaca Buruk</button>
+                                <button onclick="addKejadianCepat('Siswa terlambat dalam jumlah banyak')" class="chip-btn bg-red-50 text-red-700 border-red-200 hover:bg-red-600 hover:text-white">Terlambat Masal</button>
+                                <button onclick="addKejadianCepat('Ditemukan siswa membawa barang terlarang')" class="chip-btn bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-600 hover:text-white">Razia Siswa</button>
+                                <button onclick="addKejadianCepat('Kunjungan tamu dari Dinas Pendidikan')" class="chip-btn bg-violet-50 text-violet-700 border-violet-200 hover:bg-violet-600 hover:text-white">Tamu Dinas</button>
+                                <button onclick="addKejadianCepat('Fasilitas sekolah ditemukan rusak')" class="chip-btn bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-600 hover:text-white">Fasilitas Rusak</button>
+                            </div>
+                            <textarea id="input-kejadian-penting" class="w-full h-[160px] bg-slate-50 border p-4 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white font-bold transition-all" placeholder="Tuliskan narasi kejadian hari ini secara mendetail..."></textarea>
+                        </div>
                     </div>
 
-                    <button id="btn-sync" class="w-full bg-slate-900 text-white font-black py-5 rounded-2xl shadow-xl flex items-center justify-center gap-3">
-                        <i class="fas fa-cloud-upload-alt"></i> SINKRONKAN KE DATABASE
+                    <button id="btn-sync" class="w-full bg-slate-900 text-white font-black py-5 rounded-3xl shadow-xl flex items-center justify-center gap-4 hover:bg-black transition-all active:scale-[0.98]">
+                        <i class="fas fa-cloud-upload-alt text-xl"></i> SINKRONKAN SELURUH DATA KE DATABASE
                     </button>
                 </div>
 
                 <!-- Page Siswa -->
                 <div id="page-siswa" class="page-section fade-in">
-                    <div class="bg-white p-8 rounded-2xl shadow-sm max-w-2xl mx-auto">
-                        <h3 class="text-xl font-black mb-6 text-red-600 uppercase tracking-tighter">Input Data Siswa</h3>
+                    <div class="bg-white p-10 rounded-3xl shadow-sm border max-w-2xl mx-auto">
+                        <div class="flex items-center gap-4 mb-8">
+                            <div class="w-12 h-12 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center text-xl">
+                                <i class="fas fa-user-graduate"></i>
+                            </div>
+                            <h3 class="text-2xl font-black text-slate-800 uppercase tracking-tighter">Log Kedisiplinan Siswa</h3>
+                        </div>
                         <form id="form-siswa" class="space-y-4">
-                            <input type="text" id="siswa-nama" placeholder="Nama Siswa" class="w-full border p-4 rounded-xl font-bold bg-slate-50" required>
-                            <input type="text" id="siswa-kelas" placeholder="Kelas (Misal: 7A)" class="w-full border p-4 rounded-xl font-bold bg-slate-50" required>
-                            <select id="siswa-jenis" class="w-full border p-4 rounded-xl font-bold bg-slate-50" required>
-                                <option value="">-- Pilih Jenis --</option>
-                                <option value="Terlambat">Terlambat</option>
-                                <option value="Sakit">Sakit / Pulang</option>
-                                <option value="Izin">Izin Keluar</option>
-                                <option value="Pelanggaran">Pelanggaran Berat</option>
+                            <div class="grid grid-cols-2 gap-4">
+                                <input type="text" id="siswa-nama" placeholder="Nama Lengkap Siswa" class="w-full border p-4 rounded-xl font-bold bg-slate-50 outline-none focus:ring-2 focus:ring-red-500" required>
+                                <input type="text" id="siswa-kelas" placeholder="Kelas (Misal: 7A)" class="w-full border p-4 rounded-xl font-bold bg-slate-50 outline-none focus:ring-2 focus:ring-red-500" required>
+                            </div>
+                            <select id="siswa-jenis" class="w-full border p-4 rounded-xl font-bold bg-slate-50 outline-none focus:ring-2 focus:ring-red-500 cursor-pointer" required>
+                                <option value="">-- Pilih Jenis Kejadian --</option>
+                                <option value="Terlambat">Siswa Terlambat</option>
+                                <option value="Sakit">Sakit / Pulang Awal</option>
+                                <option value="Izin">Izin Keluar Sekolah</option>
+                                <option value="Pelanggaran Atribut">Pelanggaran Atribut</option>
+                                <option value="Pelanggaran Berat">Pelanggaran Berat</option>
                             </select>
-                            <input type="text" id="siswa-ket" placeholder="Keterangan" class="w-full border p-4 rounded-xl font-bold bg-slate-50">
-                            <button type="submit" class="w-full bg-red-500 text-white py-4 rounded-xl font-black uppercase">Simpan Data Siswa</button>
+                            <textarea id="siswa-ket" placeholder="Keterangan Tambahan / Alasan" class="w-full border p-4 rounded-xl font-bold bg-slate-50 outline-none focus:ring-2 focus:ring-red-500 h-24"></textarea>
+                            <button type="submit" class="w-full bg-red-500 hover:bg-red-600 text-white py-5 rounded-2xl font-black uppercase tracking-widest shadow-lg shadow-red-100 transition-all">SIMPAN DATA SISWA</button>
                         </form>
                     </div>
                 </div>
 
                 <!-- Page Guru -->
                 <div id="page-guru" class="page-section fade-in">
-                    <div class="bg-white p-8 rounded-2xl shadow-sm max-w-2xl mx-auto">
-                        <h3 class="text-xl font-black mb-6 text-emerald-600 uppercase tracking-tighter">Input Absensi Guru</h3>
+                    <div class="bg-white p-10 rounded-3xl shadow-sm border max-w-2xl mx-auto">
+                        <div class="flex items-center gap-4 mb-8">
+                            <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center text-xl">
+                                <i class="fas fa-chalkboard-teacher"></i>
+                            </div>
+                            <h3 class="text-2xl font-black text-slate-800 uppercase tracking-tighter">Absensi & Inval Guru</h3>
+                        </div>
                         <form id="form-guru" class="space-y-4">
-                            <input type="text" id="guru-nama" placeholder="Nama Guru" class="w-full border p-4 rounded-xl font-bold bg-slate-50" required>
-                            <input type="text" id="guru-mapel" placeholder="Mata Pelajaran" class="w-full border p-4 rounded-xl font-bold bg-slate-50" required>
-                            <select id="guru-status" class="w-full border p-4 rounded-xl font-bold bg-slate-50" required>
-                                <option value="Sakit">Sakit</option>
-                                <option value="Izin">Izin</option>
-                                <option value="Dinas">Dinas Luar</option>
-                                <option value="Alfa">Tanpa Keterangan</option>
-                            </select>
-                            <input type="text" id="guru-inval" placeholder="Guru Inval (Pengganti)" class="w-full border p-4 rounded-xl font-bold bg-slate-50">
-                            <button type="submit" class="w-full bg-emerald-500 text-white py-4 rounded-xl font-black uppercase">Simpan Data Guru</button>
+                            <input type="text" id="guru-nama" placeholder="Nama Guru yang Berhalangan" class="w-full border p-4 rounded-xl font-bold bg-slate-50 outline-none focus:ring-2 focus:ring-emerald-500" required>
+                            <div class="grid grid-cols-2 gap-4">
+                                <input type="text" id="guru-mapel" placeholder="Mata Pelajaran" class="w-full border p-4 rounded-xl font-bold bg-slate-50 outline-none focus:ring-2 focus:ring-emerald-500" required>
+                                <select id="guru-status" class="w-full border p-4 rounded-xl font-bold bg-slate-50 outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer" required>
+                                    <option value="Sakit">Sakit</option>
+                                    <option value="Izin">Izin</option>
+                                    <option value="Dinas Luar">Dinas Luar</option>
+                                    <option value="Alfa">Tanpa Keterangan</option>
+                                </select>
+                            </div>
+                            <input type="text" id="guru-inval" placeholder="Nama Guru Pengganti (Inval)" class="w-full border p-4 rounded-xl font-bold bg-slate-50 outline-none focus:ring-2 focus:ring-emerald-500">
+                            <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-5 rounded-2xl font-black uppercase tracking-widest shadow-lg shadow-emerald-100 transition-all">SIMPAN DATA GURU</button>
                         </form>
                     </div>
                 </div>
 
                 <!-- Page Tamu -->
                 <div id="page-tamu" class="page-section fade-in">
-                    <div class="bg-white p-8 rounded-2xl shadow-sm max-w-2xl mx-auto">
-                        <h3 class="text-xl font-black mb-6 text-amber-600 uppercase tracking-tighter">Buku Tamu</h3>
+                    <div class="bg-white p-10 rounded-3xl shadow-sm border max-w-2xl mx-auto">
+                        <div class="flex items-center gap-4 mb-8">
+                            <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center text-xl">
+                                <i class="fas fa-id-card"></i>
+                            </div>
+                            <h3 class="text-2xl font-black text-slate-800 uppercase tracking-tighter">Buku Tamu Digital</h3>
+                        </div>
                         <form id="form-tamu" class="space-y-4">
-                            <input type="text" id="tamu-nama" placeholder="Nama Tamu" class="w-full border p-4 rounded-xl font-bold bg-slate-50" required>
-                            <input type="text" id="tamu-instansi" placeholder="Asal Instansi" class="w-full border p-4 rounded-xl font-bold bg-slate-50">
-                            <input type="text" id="tamu-bertemu" placeholder="Bertemu Dengan" class="w-full border p-4 rounded-xl font-bold bg-slate-50" required>
-                            <input type="text" id="tamu-keperluan" placeholder="Keperluan" class="w-full border p-4 rounded-xl font-bold bg-slate-50" required>
-                            <button type="submit" class="w-full bg-amber-500 text-white py-4 rounded-xl font-black uppercase">Daftarkan Tamu</button>
+                            <input type="text" id="tamu-nama" placeholder="Nama Lengkap Tamu" class="w-full border p-4 rounded-xl font-bold bg-slate-50 outline-none focus:ring-2 focus:ring-amber-500" required>
+                            <input type="text" id="tamu-instansi" placeholder="Asal Instansi / Alamat" class="w-full border p-4 rounded-xl font-bold bg-slate-50 outline-none focus:ring-2 focus:ring-amber-500">
+                            <div class="grid grid-cols-2 gap-4">
+                                <input type="text" id="tamu-bertemu" placeholder="Bertemu Siapa?" class="w-full border p-4 rounded-xl font-bold bg-slate-50 outline-none focus:ring-2 focus:ring-amber-500" required>
+                                <input type="text" id="tamu-keperluan" placeholder="Keperluan / Tujuan" class="w-full border p-4 rounded-xl font-bold bg-slate-50 outline-none focus:ring-2 focus:ring-amber-500" required>
+                            </div>
+                            <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-white py-5 rounded-2xl font-black uppercase tracking-widest shadow-lg shadow-amber-100 transition-all">DAFTARKAN TAMU</button>
                         </form>
                     </div>
                 </div>
 
                 <!-- Page Asisten AI -->
                 <div id="page-laporan" class="page-section fade-in">
-                    <div class="bg-white p-10 rounded-3xl shadow-xl flex flex-col h-full min-h-[600px] border">
-                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8 border-b pb-6">
+                    <div class="bg-white p-10 rounded-[2.5rem] shadow-xl flex flex-col h-full min-h-[600px] border relative overflow-hidden">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8 border-b pb-8">
                             <div>
-                                <h3 class="text-2xl font-black text-slate-800 uppercase tracking-tighter">Asisten Laporan AI</h3>
-                                <p class="text-xs font-bold text-slate-400 mt-1 uppercase tracking-widest">Sintesis Otomatis oleh Gemini AI</p>
+                                <h3 class="text-3xl font-black text-slate-800 uppercase tracking-tighter">Asisten Laporan AI</h3>
+                                <div class="flex items-center gap-2 mt-2">
+                                    <span class="w-2 h-2 bg-violet-500 rounded-full animate-ping"></span>
+                                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Sintesis Data Otomatis oleh Gemini AI</p>
+                                </div>
                             </div>
-                            <div class="flex flex-wrap gap-3 bg-slate-50 p-4 rounded-2xl border">
+                            <div class="flex flex-wrap gap-4 bg-slate-50 p-6 rounded-3xl border border-slate-200">
                                 <div class="flex flex-col">
-                                    <label class="text-[9px] font-black uppercase text-slate-400 mb-1">Mulai Tanggal</label>
-                                    <input type="date" id="filter-date-start" class="bg-white border p-2 rounded-lg text-xs font-bold outline-none">
+                                    <label class="text-[9px] font-black uppercase text-slate-400 mb-2 ml-1">Rentang Mulai</label>
+                                    <input type="date" id="filter-date-start" class="bg-white border p-3 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-violet-500">
                                 </div>
                                 <div class="flex flex-col">
-                                    <label class="text-[9px] font-black uppercase text-slate-400 mb-1">Sampai Tanggal</label>
-                                    <input type="date" id="filter-date-end" class="bg-white border p-2 rounded-lg text-xs font-bold outline-none">
+                                    <label class="text-[9px] font-black uppercase text-slate-400 mb-2 ml-1">Rentang Akhir</label>
+                                    <input type="date" id="filter-date-end" class="bg-white border p-3 rounded-xl text-xs font-bold outline-none focus:ring-2 focus:ring-violet-500">
                                 </div>
-                                <button id="btn-ai-gen" class="bg-violet-600 text-white px-6 py-2 rounded-xl font-black text-xs uppercase self-end hover:bg-violet-700 transition-all shadow-lg shadow-violet-200">
-                                    Generate Laporan
+                                <button id="btn-ai-gen" class="bg-violet-600 text-white px-8 py-3 rounded-2xl font-black text-xs uppercase self-end hover:bg-violet-700 transition-all shadow-xl shadow-violet-200 flex items-center gap-3 active:scale-95">
+                                    <i class="fas fa-wand-magic-sparkles"></i> GENERATE
                                 </button>
                             </div>
                         </div>
 
-                        <div id="ai-loading" class="hidden flex-1 flex flex-col items-center justify-center text-center animate-pulse">
-                            <div class="w-16 h-16 bg-violet-100 text-violet-600 rounded-full flex items-center justify-center mb-4">
-                                <i class="fas fa-magic text-2xl"></i>
+                        <div id="ai-loading" class="hidden flex-1 flex flex-col items-center justify-center text-center">
+                            <div class="w-20 h-20 bg-violet-100 text-violet-600 rounded-full flex items-center justify-center mb-6 animate-bounce shadow-inner">
+                                <i class="fas fa-brain text-3xl"></i>
                             </div>
-                            <p class="font-black text-violet-800 uppercase tracking-widest text-sm">Menyusun Laporan Digital...</p>
+                            <p class="font-black text-violet-800 uppercase tracking-widest text-lg">AI Sedang Merangkum Laporan...</p>
+                            <p class="text-slate-400 text-sm mt-2">Ini mungkin memakan waktu 5-10 detik</p>
                         </div>
 
-                        <div id="ai-result-container" class="flex-1 overflow-auto bg-slate-50 rounded-2xl p-2 border-2 border-slate-100">
-                            <div id="ai-result" class="report-paper whitespace-pre-wrap font-serif text-slate-800 text-base leading-relaxed">Pilih rentang tanggal lalu klik Generate untuk memulai analisis...</div>
+                        <div id="ai-result-container" class="flex-1 overflow-auto bg-slate-50/50 rounded-3xl p-3 border-2 border-slate-100 min-h-[300px]">
+                            <div id="ai-result" class="report-paper whitespace-pre-wrap text-slate-800 text-base leading-relaxed">
+                                <div class="text-center py-20">
+                                    <i class="fas fa-file-alt text-slate-200 text-6xl mb-4"></i>
+                                    <p class="text-slate-400 font-bold uppercase tracking-widest">Pilih tanggal untuk melihat laporan AI</p>
+                                </div>
+                            </div>
                         </div>
 
-                        <button id="btn-copy-report" class="hidden mt-6 bg-slate-900 text-white py-4 rounded-xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2">
-                           <i class="fas fa-copy"></i> Salin Laporan Ke WA
+                        <button id="btn-copy-report" class="hidden mt-6 bg-slate-900 text-white py-5 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 hover:bg-black transition-all">
+                           <i class="fas fa-copy text-lg"></i> SALIN LAPORAN UNTUK GRUP WHATSAPP
                         </button>
                     </div>
                 </div>
 
                 <!-- Page Pengaturan -->
                 <div id="page-pengaturan" class="page-section fade-in">
-                    <div class="max-w-2xl mx-auto bg-white p-10 rounded-3xl shadow-xl">
-                        <h3 class="text-xl font-black mb-8 uppercase tracking-tighter">Pengaturan Sistem</h3>
-                        <div class="space-y-6">
+                    <div class="max-w-2xl mx-auto bg-white p-10 rounded-[2.5rem] shadow-sm border">
+                        <h3 class="text-2xl font-black mb-8 uppercase tracking-tighter flex items-center gap-3">
+                            <i class="fas fa-tools text-slate-400"></i> Pengaturan Sistem
+                        </h3>
+                        <div class="space-y-8">
                             <div>
-                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">GAS Endpoint URL</label>
-                                <input type="text" id="config-gas-url" class="w-full border p-4 rounded-xl font-bold text-sm bg-slate-50" placeholder="https://script.google.com/...">
+                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-3">Google Apps Script Endpoint</label>
+                                <input type="text" id="config-gas-url" class="w-full border p-4 rounded-2xl font-bold text-sm bg-slate-50 outline-none focus:ring-2 focus:ring-slate-400" placeholder="https://script.google.com/macros/s/...">
                             </div>
-                            <button id="btn-save-settings" class="w-full bg-slate-900 text-white py-4 rounded-xl font-black uppercase">Simpan Konfigurasi</button>
+                            <div class="p-6 bg-slate-50 rounded-3xl border border-dashed border-slate-300">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 italic">Informasi Sistem</p>
+                                <p class="text-xs text-slate-500 font-bold">Aplikasi ini menyimpan data secara lokal sebelum disinkronkan ke Google Sheets. Gunakan tombol SINKRONKAN di dashboard untuk memindahkan data ke server.</p>
+                            </div>
+                            <button id="btn-save-settings" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black uppercase tracking-widest hover:bg-black transition-all">SIMPAN PERUBAHAN</button>
                         </div>
                     </div>
                 </div>
