@@ -12,31 +12,41 @@ const AUTH_CREDENTIALS = {
 const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbw1V8Cg_saKE9010DL9ZyP6BH8hH9ArAnC6fvqFcairLfKnr-kZ2gWk3JkLxmJVqKE7/exec"; 
 
 // --- MANAJEMEN DATA ---
-interface LogSiswa { nama: string; kelas: string; jenis: string; keterangan: string; }
-interface AbsenGuru { nama: string; mapel: string; status: string; inval: string; }
-interface BukuTamu { nama: string; instansi: string; bertemu: string; keperluan: string; }
+interface LogSiswa { nama: string; kelas: string; jenis: string; keterangan: string; timestamp?: string; }
+interface AbsenGuru { nama: string; mapel: string; status: string; inval: string; timestamp?: string; }
+interface BukuTamu { nama: string; instansi: string; bertemu: string; keperluan: string; timestamp?: string; }
+interface LogKejadian { kejadian: string; timestamp?: string; }
 
 interface AppData {
     logSiswa: LogSiswa[];
     absenGuru: AbsenGuru[];
     bukuTamu: BukuTamu[];
-    laporanKejadian: string;
+    logKejadian: LogKejadian[];
     laporanAI: string;
 }
 
-let localData: AppData = { logSiswa: [], absenGuru: [], bukuTamu: [], laporanKejadian: '', laporanAI: '' };
-let cloudDataStore: AppData = { logSiswa: [], absenGuru: [], bukuTamu: [], laporanKejadian: '', laporanAI: '' };
-let displayData: AppData = { logSiswa: [], absenGuru: [], bukuTamu: [], laporanKejadian: '', laporanAI: '' };
+let localData: AppData = { logSiswa: [], absenGuru: [], bukuTamu: [], logKejadian: [], laporanAI: '' };
+let cloudDataStore: AppData = { logSiswa: [], absenGuru: [], bukuTamu: [], logKejadian: [], laporanAI: '' };
+let displayData: AppData = { logSiswa: [], absenGuru: [], bukuTamu: [], logKejadian: [], laporanAI: '' };
 
 let chartInstance: any = null;
 let namaGuruPiket: string = "Belum diset";
 
 // --- INISIALISASI ---
 document.addEventListener('DOMContentLoaded', () => {
+    setDefaultDates();
     checkAuth();
     setupEventListeners();
     loadSettings();
 });
+
+function setDefaultDates() {
+    const today = new Date().toISOString().split('T')[0];
+    const startInput = document.getElementById('filter-date-start') as HTMLInputElement;
+    const endInput = document.getElementById('filter-date-end') as HTMLInputElement;
+    if (startInput) startInput.value = today;
+    if (endInput) endInput.value = today;
+}
 
 function getGasUrl() {
     return localStorage.getItem('piket_gas_url') || DEFAULT_GAS_URL;
@@ -68,11 +78,15 @@ function setupEventListeners() {
     document.getElementById('btn-save-settings')?.addEventListener('click', saveSettings);
     document.getElementById('btn-save-guru')?.addEventListener('click', saveGuruPiket);
     document.getElementById('btn-logout')?.addEventListener('click', handleLogout);
-    document.getElementById('btn-fullscreen')?.addEventListener('click', toggleFullscreen);
 
     const txtKejadian = document.getElementById('input-kejadian-penting') as HTMLTextAreaElement;
     txtKejadian?.addEventListener('input', (e) => {
-        localData.laporanKejadian = (e.target as HTMLTextAreaElement).value;
+        const val = (e.target as HTMLTextAreaElement).value;
+        if (localData.logKejadian.length === 0) {
+            localData.logKejadian.push({ kejadian: val, timestamp: new Date().toISOString() });
+        } else {
+            localData.logKejadian[0].kejadian = val;
+        }
     });
 }
 
@@ -118,7 +132,7 @@ async function fetchInitialData() {
             logSiswa: data.logSiswa || [],
             absenGuru: data.absenGuru || [],
             bukuTamu: data.bukuTamu || [],
-            laporanKejadian: '',
+            logKejadian: data.logKejadian || [],
             laporanAI: ''
         };
         refreshDisplay();
@@ -133,6 +147,7 @@ function refreshDisplay() {
     displayData.logSiswa = [...cloudDataStore.logSiswa, ...localData.logSiswa];
     displayData.absenGuru = [...cloudDataStore.absenGuru, ...localData.absenGuru];
     displayData.bukuTamu = [...cloudDataStore.bukuTamu, ...localData.bukuTamu];
+    displayData.logKejadian = [...cloudDataStore.logKejadian, ...localData.logKejadian];
     
     const s = document.getElementById('stat-siswa');
     const g = document.getElementById('stat-guru');
@@ -167,6 +182,13 @@ function router(pageId: string) {
     document.getElementById(`page-${pageId}`)?.classList.add('active');
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
     document.getElementById(`nav-${pageId}`)?.classList.add('active');
+    
+    const icons: any = { dashboard: 'chart-pie', siswa: 'user-shield', guru: 'chalkboard-user', tamu: 'id-card-clip', laporan: 'wand-sparkles', pengaturan: 'cog' };
+    const titles: any = { dashboard: 'Dashboard', siswa: 'Siswa', guru: 'Guru', tamu: 'Tamu', laporan: 'Asisten AI', pengaturan: 'Pengaturan' };
+    const ic = document.getElementById('page-icon');
+    const pt = document.getElementById('page-title');
+    if (ic) ic.className = `fas fa-${icons[pageId]}`;
+    if (pt) pt.innerText = titles[pageId];
 }
 
 function handleSiswaSubmit(e: Event) {
@@ -175,11 +197,12 @@ function handleSiswaSubmit(e: Event) {
         nama: (document.getElementById('siswa-nama') as HTMLInputElement).value,
         kelas: (document.getElementById('siswa-kelas') as HTMLInputElement).value,
         jenis: (document.getElementById('siswa-jenis') as HTMLSelectElement).value,
-        keterangan: (document.getElementById('siswa-ket') as HTMLInputElement).value
+        keterangan: (document.getElementById('siswa-ket') as HTMLInputElement).value,
+        timestamp: new Date().toISOString()
     });
     refreshDisplay();
     (e.target as HTMLFormElement).reset();
-    alert('Tersimpan di memori lokal.');
+    alert('Tersimpan lokal.');
 }
 
 function handleGuruSubmit(e: Event) {
@@ -188,7 +211,8 @@ function handleGuruSubmit(e: Event) {
         nama: (document.getElementById('guru-nama') as HTMLInputElement).value,
         mapel: (document.getElementById('guru-mapel') as HTMLInputElement).value,
         status: (document.getElementById('guru-status') as HTMLSelectElement).value,
-        inval: (document.getElementById('guru-inval') as HTMLInputElement).value
+        inval: (document.getElementById('guru-inval') as HTMLInputElement).value,
+        timestamp: new Date().toISOString()
     });
     refreshDisplay();
     (e.target as HTMLFormElement).reset();
@@ -201,14 +225,43 @@ function handleTamuSubmit(e: Event) {
         nama: (document.getElementById('tamu-nama') as HTMLInputElement).value,
         instansi: (document.getElementById('tamu-instansi') as HTMLInputElement).value,
         bertemu: (document.getElementById('tamu-bertemu') as HTMLInputElement).value,
-        keperluan: (document.getElementById('tamu-keperluan') as HTMLInputElement).value
+        keperluan: (document.getElementById('tamu-keperluan') as HTMLInputElement).value,
+        timestamp: new Date().toISOString()
     });
     refreshDisplay();
     (e.target as HTMLFormElement).reset();
     alert('Tamu terdaftar.');
 }
 
+// Fungsi filter tanggal yang lebih kuat
+function filterByDateRange(data: any[], start: string, end: string) {
+    if (!start || !end) return data;
+    const startDate = new Date(start);
+    startDate.setHours(0, 0, 0, 0);
+    const endDate = new Date(end);
+    endDate.setHours(23, 59, 59, 999);
+
+    return data.filter(item => {
+        if (!item.timestamp) return false;
+        const itemDate = new Date(item.timestamp);
+        return itemDate >= startDate && itemDate <= endDate;
+    });
+}
+
 async function generateAIReport() {
+    const startVal = (document.getElementById('filter-date-start') as HTMLInputElement).value;
+    const endVal = (document.getElementById('filter-date-end') as HTMLInputElement).value;
+
+    const filteredSiswa = filterByDateRange(displayData.logSiswa, startVal, endVal);
+    const filteredGuru = filterByDateRange(displayData.absenGuru, startVal, endVal);
+    const filteredTamu = filterByDateRange(displayData.bukuTamu, startVal, endVal);
+    const filteredKejadian = filterByDateRange(displayData.logKejadian, startVal, endVal);
+
+    if (filteredSiswa.length === 0 && filteredGuru.length === 0 && filteredTamu.length === 0 && filteredKejadian.length === 0) {
+        alert("Tidak ditemukan data pada rentang tanggal tersebut (" + startVal + " s/d " + endVal + "). Pastikan data sudah disinkronkan ke database.");
+        return;
+    }
+
     const btn = document.getElementById('btn-ai-gen') as HTMLButtonElement;
     const loader = document.getElementById('ai-loading');
     const resultArea = document.getElementById('ai-result');
@@ -219,19 +272,49 @@ async function generateAIReport() {
 
     try {
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-        const prompt = `Buat laporan piket formal untuk UPT SMPN 4 MAPPEDECENG. Guru Piket: ${namaGuruPiket}. Data: Siswa(${JSON.stringify(displayData.logSiswa)}), Guru(${JSON.stringify(displayData.absenGuru)}), Tamu(${JSON.stringify(displayData.bukuTamu)}), Kejadian(${localData.laporanKejadian}). Buat dalam 3 bagian: I. Narasi Kejadian, II. Analisis Situasi, III. Rekomendasi.`;
+        
+        const prompt = `
+            Tugas: Buat laporan piket sekolah formal untuk UPT SMPN 4 MAPPEDECENG.
+            Rentang Waktu Laporan: ${startVal} sampai ${endVal}
+            Petugas Piket: ${namaGuruPiket}
+            
+            Gunakan data mentah berikut:
+            - Pelanggaran Siswa: ${JSON.stringify(filteredSiswa)}
+            - Ketidakhadiran Guru: ${JSON.stringify(filteredGuru)}
+            - Tamu Sekolah: ${JSON.stringify(filteredTamu)}
+            - Narasi Kejadian: ${JSON.stringify(filteredKejadian)}
+            
+            PERATURAN FORMAT SANGAT KETAT:
+            1. JANGAN GUNAKAN SIMBOL MARKDOWN APAPUN. Dilarang keras menggunakan simbol: #, ##, ###, **, __, atau *.
+            2. Gunakan Huruf Kapital untuk Judul Bagian.
+            3. Gunakan penomoran manual (1., 2., 3.) untuk daftar.
+            4. Gunakan Bahasa Indonesia yang sangat formal, rapi, dan santun.
+            5. Struktur Laporan:
+               - JUDUL: LAPORAN HARIAN GURU PIKET
+               - BAGIAN 1: PENDAHULUAN (Cantumkan tanggal dan petugas)
+               - BAGIAN 2: REKAPITULASI SISWA (Sebutkan nama siswa, kelas, dan jenis kendala)
+               - BAGIAN 3: REKAPITULASI GURU & TAMU
+               - BAGIAN 4: CATATAN PERISTIWA PENTING
+               - BAGIAN 5: KESIMPULAN & SARAN TINDAK LANJUT
+        `;
         
         const response = await ai.models.generateContent({
             model: 'gemini-3-flash-preview',
             contents: prompt,
         });
 
-        const text = response.text || "Gagal merangkum laporan.";
-        localData.laporanAI = text;
-        if (resultArea) resultArea.innerText = text;
+        let text = response.text || "Gagal menghasilkan laporan.";
+        
+        // Pembersihan Paksa via Regex untuk memastikan tidak ada Markdown yang lolos
+        const cleanText = text
+            .replace(/[#*`_]/g, '') // Hapus pagar, bintang, backtick, underscore
+            .replace(/^\s+|\s+$/g, ''); // Hapus spasi di awal/akhir
+
+        localData.laporanAI = cleanText;
+        if (resultArea) resultArea.innerText = cleanText;
         document.getElementById('btn-copy-report')?.classList.remove('hidden');
     } catch (e: any) {
-        alert('AI Error: ' + e.message);
+        alert('Maaf, AI mengalami kendala: ' + e.message);
     } finally {
         loader?.classList.add('hidden');
         resultArea?.classList.remove('hidden');
@@ -243,17 +326,27 @@ async function syncData() {
     const url = getGasUrl();
     const statusEl = document.getElementById('sync-status');
     statusEl?.classList.remove('hidden');
+    
+    const payload = {
+        logSiswa: localData.logSiswa,
+        absenGuru: localData.absenGuru,
+        bukuTamu: localData.bukuTamu,
+        laporanKejadian: localData.logKejadian.map(l => l.kejadian).join("\n"),
+        laporanAI: localData.laporanAI
+    };
+
     try {
         await fetch(url, {
             method: 'POST',
             mode: 'no-cors',
-            body: JSON.stringify(localData)
+            body: JSON.stringify(payload)
         });
-        alert('SINKRONISASI BERHASIL!');
-        localData = { logSiswa: [], absenGuru: [], bukuTamu: [], laporanKejadian: '', laporanAI: '' };
-        setTimeout(() => fetchInitialData(), 1000);
+        alert('SINKRONISASI BERHASIL! Data sekarang tersimpan di Google Sheets.');
+        localData = { logSiswa: [], absenGuru: [], bukuTamu: [], logKejadian: [], laporanAI: '' };
+        (document.getElementById('input-kejadian-penting') as HTMLTextAreaElement).value = '';
+        setTimeout(() => fetchInitialData(), 1500);
     } catch (e) {
-        alert('Gagal kirim ke cloud.');
+        alert('Gagal mengirim data. Periksa koneksi internet atau URL API.');
     } finally {
         statusEl?.classList.add('hidden');
     }
@@ -262,7 +355,7 @@ async function syncData() {
 function saveSettings() {
     const url = (document.getElementById('config-gas-url') as HTMLInputElement).value;
     localStorage.setItem('piket_gas_url', url);
-    alert('URL disimpan!');
+    alert('URL Endpoint disimpan!');
 }
 
 function loadSettings() {
@@ -278,6 +371,7 @@ function saveGuruPiket() {
         namaGuruPiket = input.value;
         localStorage.setItem('piket_guru_nama', namaGuruPiket);
         updateGuruDisplay();
+        alert('Nama Guru Piket berhasil diset!');
     }
 }
 
@@ -288,10 +382,9 @@ function updateGuruDisplay() {
 
 function copyReportToClipboard() {
     const t = document.getElementById('ai-result')?.innerText;
-    if (t) navigator.clipboard.writeText(t).then(() => alert('Tersalin!'));
-}
-
-function toggleFullscreen() {
-    if (!document.fullscreenElement) document.documentElement.requestFullscreen();
-    else document.exitFullscreen();
+    if (t) {
+        navigator.clipboard.writeText(t).then(() => {
+            alert('Laporan berhasil disalin ke papan klip! Silakan buka WhatsApp dan pilih Tempel/Paste.');
+        });
+    }
 }
