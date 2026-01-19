@@ -60,6 +60,26 @@ function getGasUrl() {
 function setupEventListeners() {
     document.getElementById('login-form')?.addEventListener('submit', handleLogin);
     
+    // Panduan Modal Logic
+    const btnOpenGuide = document.getElementById('btn-open-guide');
+    const btnCloseGuide = document.getElementById('btn-close-guide');
+    const modalGuide = document.getElementById('modal-guide');
+
+    btnOpenGuide?.addEventListener('click', () => {
+        modalGuide?.classList.add('active');
+    });
+
+    btnCloseGuide?.addEventListener('click', () => {
+        modalGuide?.classList.remove('active');
+    });
+
+    // Close on overlay click
+    modalGuide?.addEventListener('click', (e) => {
+        if (e.target === modalGuide) {
+            modalGuide.classList.remove('active');
+        }
+    });
+
     const navButtons = {
         'nav-dashboard': 'dashboard',
         'nav-siswa': 'siswa',
