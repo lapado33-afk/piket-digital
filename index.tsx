@@ -49,8 +49,11 @@ function setDefaultDates() {
     const today = new Date().toISOString().split('T')[0];
     const startInput = document.getElementById('filter-date-start') as HTMLInputElement;
     const endInput = document.getElementById('filter-date-end') as HTMLInputElement;
+    const dashboardDateInput = document.getElementById('dashboard-date-filter') as HTMLInputElement;
+
     if (startInput) startInput.value = today;
     if (endInput) endInput.value = today;
+    if (dashboardDateInput) dashboardDateInput.value = today;
 }
 
 function getGasUrl() {
@@ -78,6 +81,11 @@ function setupEventListeners() {
         if (e.target === modalGuide) {
             modalGuide.classList.remove('active');
         }
+    });
+
+    // Dashboard Date Filter
+    document.getElementById('dashboard-date-filter')?.addEventListener('change', () => {
+        refreshDisplay();
     });
 
     const navButtons = {
@@ -169,9 +177,24 @@ async function fetchInitialData() {
 }
 
 function refreshDisplay() {
-    displayData.logSiswa = [...cloudDataStore.logSiswa, ...localData.logSiswa];
-    displayData.absenGuru = [...cloudDataStore.absenGuru, ...localData.absenGuru];
-    displayData.bukuTamu = [...cloudDataStore.bukuTamu, ...localData.bukuTamu];
+    const dashboardDate = (document.getElementById('dashboard-date-filter') as HTMLInputElement)?.value;
+    
+    // Combine local and cloud data
+    let allSiswa = [...cloudDataStore.logSiswa, ...localData.logSiswa];
+    let allGuru = [...cloudDataStore.absenGuru, ...localData.absenGuru];
+    let allTamu = [...cloudDataStore.bukuTamu, ...localData.bukuTamu];
+    
+    // Filter by Dashboard Date if set
+    if (dashboardDate) {
+        allSiswa = filterByDateRange(allSiswa, dashboardDate, dashboardDate);
+        allGuru = filterByDateRange(allGuru, dashboardDate, dashboardDate);
+        allTamu = filterByDateRange(allTamu, dashboardDate, dashboardDate);
+    }
+
+    displayData.logSiswa = allSiswa;
+    displayData.absenGuru = allGuru;
+    displayData.bukuTamu = allTamu;
+    // Log kejadian normally only shows today's local entry for editing
     displayData.logKejadian = [...cloudDataStore.logKejadian, ...localData.logKejadian];
     
     const s = document.getElementById('stat-siswa');
@@ -238,6 +261,7 @@ function router(pageId: string) {
 
     if (pageId === 'dashboard') {
         setTimeout(initChart, 200);
+        refreshDisplay();
     }
 }
 
