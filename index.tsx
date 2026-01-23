@@ -39,7 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     loadSettings();
     
-    // Pastikan chart dibuat di awal
     setTimeout(() => {
         initChart();
     }, 500);
@@ -47,13 +46,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function setDefaultDates() {
     const today = new Date().toISOString().split('T')[0];
-    const startInput = document.getElementById('filter-date-start') as HTMLInputElement;
-    const endInput = document.getElementById('filter-date-end') as HTMLInputElement;
-    const dashboardDateInput = document.getElementById('dashboard-date-filter') as HTMLInputElement;
-
-    if (startInput) startInput.value = today;
-    if (endInput) endInput.value = today;
-    if (dashboardDateInput) dashboardDateInput.value = today;
+    const inputs = ['filter-date-start', 'filter-date-end', 'dashboard-date-filter'];
+    inputs.forEach(id => {
+        const el = document.getElementById(id) as HTMLInputElement;
+        if (el) el.value = today;
+    });
 }
 
 function getGasUrl() {
@@ -63,41 +60,33 @@ function getGasUrl() {
 function setupEventListeners() {
     document.getElementById('login-form')?.addEventListener('submit', handleLogin);
     
-    // Panduan Modal Logic
+    // Panduan Modal
     const btnOpenGuide = document.getElementById('btn-open-guide');
     const btnCloseGuide = document.getElementById('btn-close-guide');
     const modalGuide = document.getElementById('modal-guide');
 
-    btnOpenGuide?.addEventListener('click', () => {
-        modalGuide?.classList.add('active');
-    });
-
-    btnCloseGuide?.addEventListener('click', () => {
-        modalGuide?.classList.remove('active');
-    });
-
-    // Close on overlay click
-    modalGuide?.addEventListener('click', (e) => {
-        if (e.target === modalGuide) {
-            modalGuide.classList.remove('active');
-        }
-    });
+    btnOpenGuide?.addEventListener('click', () => modalGuide?.classList.replace('hidden', 'flex'));
+    btnCloseGuide?.addEventListener('click', () => modalGuide?.classList.replace('flex', 'hidden'));
+    modalGuide?.addEventListener('click', (e) => { if (e.target === modalGuide) modalGuide.classList.replace('flex', 'hidden'); });
 
     // Dashboard Date Filter
-    document.getElementById('dashboard-date-filter')?.addEventListener('change', () => {
-        refreshDisplay();
+    document.getElementById('dashboard-date-filter')?.addEventListener('change', refreshDisplay);
+
+    // Sidebar Nav (Desktop)
+    const sidebarNavs = {
+        'nav-dashboard': 'dashboard', 'nav-siswa': 'siswa', 'nav-guru': 'guru',
+        'nav-tamu': 'tamu', 'nav-laporan': 'laporan', 'nav-pengaturan': 'pengaturan'
+    };
+    Object.entries(sidebarNavs).forEach(([id, pageId]) => {
+        document.getElementById(id)?.addEventListener('click', () => router(pageId));
     });
 
-    const navButtons = {
-        'nav-dashboard': 'dashboard',
-        'nav-siswa': 'siswa',
-        'nav-guru': 'guru',
-        'nav-tamu': 'tamu',
-        'nav-laporan': 'laporan',
-        'nav-pengaturan': 'pengaturan'
+    // Bottom Nav (Mobile)
+    const mobileNavs = {
+        'btn-mob-dashboard': 'dashboard', 'btn-mob-siswa': 'siswa', 'btn-mob-guru': 'guru',
+        'btn-mob-tamu': 'tamu', 'btn-mob-laporan': 'laporan', 'btn-mob-pengaturan': 'pengaturan'
     };
-
-    Object.entries(navButtons).forEach(([id, pageId]) => {
+    Object.entries(mobileNavs).forEach(([id, pageId]) => {
         document.getElementById(id)?.addEventListener('click', () => router(pageId));
     });
 
@@ -110,7 +99,9 @@ function setupEventListeners() {
     document.getElementById('btn-copy-report')?.addEventListener('click', copyReportToClipboard);
     document.getElementById('btn-save-settings')?.addEventListener('click', saveSettings);
     document.getElementById('btn-save-guru')?.addEventListener('click', saveGuruPiket);
+    
     document.getElementById('btn-logout')?.addEventListener('click', handleLogout);
+    document.getElementById('btn-logout-mobile')?.addEventListener('click', handleLogout);
 
     const txtKejadian = document.getElementById('input-kejadian-penting') as HTMLTextAreaElement;
     txtKejadian?.addEventListener('input', (e) => {
@@ -148,7 +139,7 @@ function checkAuth() {
 }
 
 function handleLogout() {
-    if (confirm('Keluar dari sistem Buku Piket?')) {
+    if (confirm('Keluar dari aplikasi?')) {
         localStorage.removeItem('piket_is_logged_in');
         window.location.reload();
     }
@@ -170,7 +161,7 @@ async function fetchInitialData() {
         };
         refreshDisplay();
     } catch (e) {
-        console.error("Gagal ambil data cloud awal");
+        console.error("Gagal ambil data cloud");
     } finally {
         statusEl?.classList.add('hidden');
     }
@@ -178,13 +169,10 @@ async function fetchInitialData() {
 
 function refreshDisplay() {
     const dashboardDate = (document.getElementById('dashboard-date-filter') as HTMLInputElement)?.value;
-    
-    // Combine local and cloud data
     let allSiswa = [...cloudDataStore.logSiswa, ...localData.logSiswa];
     let allGuru = [...cloudDataStore.absenGuru, ...localData.absenGuru];
     let allTamu = [...cloudDataStore.bukuTamu, ...localData.bukuTamu];
     
-    // Filter by Dashboard Date if set
     if (dashboardDate) {
         allSiswa = filterByDateRange(allSiswa, dashboardDate, dashboardDate);
         allGuru = filterByDateRange(allGuru, dashboardDate, dashboardDate);
@@ -194,15 +182,13 @@ function refreshDisplay() {
     displayData.logSiswa = allSiswa;
     displayData.absenGuru = allGuru;
     displayData.bukuTamu = allTamu;
-    // Log kejadian normally only shows today's local entry for editing
     displayData.logKejadian = [...cloudDataStore.logKejadian, ...localData.logKejadian];
     
-    const s = document.getElementById('stat-siswa');
-    const g = document.getElementById('stat-guru');
-    const t = document.getElementById('stat-tamu');
-    if (s) s.innerText = displayData.logSiswa.length.toString();
-    if (g) g.innerText = displayData.absenGuru.length.toString();
-    if (t) t.innerText = displayData.bukuTamu.length.toString();
+    ['stat-siswa', 'stat-guru', 'stat-tamu'].forEach((id, idx) => {
+        const el = document.getElementById(id);
+        const data = [displayData.logSiswa, displayData.absenGuru, displayData.bukuTamu][idx];
+        if (el) el.innerText = data.length.toString();
+    });
 
     updateChart();
 }
@@ -218,18 +204,13 @@ function initChart() {
         type: 'bar',
         data: { 
             labels: ['Terlambat', 'Izin', 'Sakit', 'Atribut', 'Berat'], 
-            datasets: [{ 
-                label: 'Jumlah Kejadian', 
-                data: [0, 0, 0, 0, 0], 
-                backgroundColor: '#3b82f6',
-                borderRadius: 8
-            }] 
+            datasets: [{ data: [0, 0, 0, 0, 0], backgroundColor: '#3b82f6', borderRadius: 6 }] 
         },
         options: { 
             responsive: true, 
             maintainAspectRatio: false,
             plugins: { legend: { display: false } },
-            scales: { y: { beginAtZero: true, grid: { display: false } } }
+            scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
         }
     });
 }
@@ -237,27 +218,38 @@ function initChart() {
 function updateChart() {
     if (!chartInstance) return;
     const counts: any = { 'Terlambat': 0, 'Izin': 0, 'Sakit': 0, 'Pelanggaran Atribut': 0, 'Pelanggaran Berat': 0 };
-    displayData.logSiswa.forEach(x => {
-        if (counts[x.jenis] !== undefined) counts[x.jenis]++;
-    });
-    
-    chartInstance.data.labels = Object.keys(counts);
+    displayData.logSiswa.forEach(x => { if (counts[x.jenis] !== undefined) counts[x.jenis]++; });
     chartInstance.data.datasets[0].data = Object.values(counts);
     chartInstance.update();
 }
 
 function router(pageId: string) {
+    // Hide all sections
     document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
     document.getElementById(`page-${pageId}`)?.classList.add('active');
-    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-    document.getElementById(`nav-${pageId}`)?.classList.add('active');
     
-    const icons: any = { dashboard: 'chart-pie', siswa: 'user-shield', guru: 'chalkboard-user', tamu: 'id-card-clip', laporan: 'wand-sparkles', pengaturan: 'cog' };
-    const titles: any = { dashboard: 'Dashboard Utama', siswa: 'Log Siswa', guru: 'Data Guru', tamu: 'Buku Tamu', laporan: 'Asisten AI', pengaturan: 'Sistem' };
+    // Update Desktop Sidebar UI
+    document.querySelectorAll('.nav-btn-sidebar').forEach(btn => btn.classList.remove('bg-white/20', 'text-white'));
+    document.getElementById(`nav-${pageId}`)?.classList.add('bg-white/20', 'text-white');
+
+    // Update Mobile Bottom Nav UI
+    document.querySelectorAll('.nav-btn-mobile').forEach(btn => btn.classList.remove('text-blue-500'));
+    const mobBtn = {
+        dashboard: 'btn-mob-dashboard', siswa: 'btn-mob-siswa', guru: 'btn-mob-guru',
+        tamu: 'btn-mob-tamu', laporan: 'btn-mob-laporan', pengaturan: 'btn-mob-pengaturan'
+    }[pageId];
+    document.getElementById(mobBtn || '')?.classList.add('text-blue-500');
+    
+    const meta: any = { 
+        dashboard: ['chart-pie', 'Dashboard'], siswa: ['user-shield', 'Log Siswa'], 
+        guru: ['chalkboard-user', 'Absensi Guru'], tamu: ['id-card-clip', 'Buku Tamu'], 
+        laporan: ['wand-sparkles', 'Asisten AI'], pengaturan: ['cog', 'Sistem'] 
+    };
+    
     const ic = document.getElementById('page-icon');
     const pt = document.getElementById('page-title');
-    if (ic) ic.className = `fas fa-${icons[pageId]}`;
-    if (pt) pt.innerText = titles[pageId];
+    if (ic) ic.className = `fas fa-${meta[pageId][0]}`;
+    if (pt) pt.innerText = meta[pageId][1];
 
     if (pageId === 'dashboard') {
         setTimeout(initChart, 200);
@@ -276,7 +268,7 @@ function handleSiswaSubmit(e: Event) {
     });
     refreshDisplay();
     (e.target as HTMLFormElement).reset();
-    alert('Data siswa tercatat secara lokal.');
+    alert('Data tersimpan.');
 }
 
 function handleGuruSubmit(e: Event) {
@@ -290,7 +282,7 @@ function handleGuruSubmit(e: Event) {
     });
     refreshDisplay();
     (e.target as HTMLFormElement).reset();
-    alert('Data guru tercatat.');
+    alert('Data tersimpan.');
 }
 
 function handleTamuSubmit(e: Event) {
@@ -304,34 +296,31 @@ function handleTamuSubmit(e: Event) {
     });
     refreshDisplay();
     (e.target as HTMLFormElement).reset();
-    alert('Data tamu berhasil disimpan.');
+    alert('Data tamu tercatat.');
 }
 
 function filterByDateRange(data: any[], start: string, end: string) {
     if (!start || !end) return data;
-    const startDate = new Date(start);
-    startDate.setHours(0, 0, 0, 0);
-    const endDate = new Date(end);
-    endDate.setHours(23, 59, 59, 999);
-
+    const s = new Date(start); s.setHours(0,0,0,0);
+    const e = new Date(end); e.setHours(23,59,59,999);
     return data.filter(item => {
         if (!item.timestamp) return false;
-        const itemDate = new Date(item.timestamp);
-        return itemDate >= startDate && itemDate <= endDate;
+        const d = new Date(item.timestamp);
+        return d >= s && d <= e;
     });
 }
 
 async function generateAIReport() {
-    const startVal = (document.getElementById('filter-date-start') as HTMLInputElement).value;
-    const endVal = (document.getElementById('filter-date-end') as HTMLInputElement).value;
+    const sVal = (document.getElementById('filter-date-start') as HTMLInputElement).value;
+    const eVal = (document.getElementById('filter-date-end') as HTMLInputElement).value;
 
-    const filteredSiswa = filterByDateRange(displayData.logSiswa, startVal, endVal);
-    const filteredGuru = filterByDateRange(displayData.absenGuru, startVal, endVal);
-    const filteredTamu = filterByDateRange(displayData.bukuTamu, startVal, endVal);
-    const filteredKejadian = filterByDateRange(displayData.logKejadian, startVal, endVal);
+    const fs = filterByDateRange(displayData.logSiswa, sVal, eVal);
+    const fg = filterByDateRange(displayData.absenGuru, sVal, eVal);
+    const ft = filterByDateRange(displayData.bukuTamu, sVal, eVal);
+    const fk = filterByDateRange(displayData.logKejadian, sVal, eVal);
 
-    if (filteredSiswa.length === 0 && filteredGuru.length === 0 && filteredTamu.length === 0 && filteredKejadian.length === 0) {
-        alert("Ops! Tidak ada data pada rentang " + startVal + " sampai " + endVal + ". Coba sinkronkan data atau ganti tanggal.");
+    if (!fs.length && !fg.length && !ft.length && !fk.length) {
+        alert("Tidak ada data untuk rentang ini.");
         return;
     }
 
@@ -345,50 +334,16 @@ async function generateAIReport() {
 
     try {
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const prompt = `Susun laporan resmi Guru Piket UPT SMPN 4 MAPPEDECENG. Periode: ${sVal} - ${eVal}. Piket: ${namaGuruPiket}. Data: Siswa ${JSON.stringify(fs)}, Guru ${JSON.stringify(fg)}, Tamu ${JSON.stringify(ft)}, Kejadian ${JSON.stringify(fk)}. Format: Kapital JUDUL BAGIAN, rapi, tanpa simbol markdown (* atau #). Gunakan bahasa formal Indonesia.`;
         
-        const prompt = `
-            Tugas: Susun laporan resmi harian Guru Piket untuk UPT SMPN 4 MAPPEDECENG.
-            Periode Laporan: ${startVal} s/d ${endVal}
-            Petugas Piket Utama: ${namaGuruPiket}
-            
-            Gunakan data ini sebagai sumber:
-            - Catatan Kedisiplinan Siswa: ${JSON.stringify(filteredSiswa)}
-            - Absensi Guru & Pengganti (Inval): ${JSON.stringify(filteredGuru)}
-            - Kunjungan Tamu: ${JSON.stringify(filteredTamu)}
-            - Narasi Kejadian Khusus: ${JSON.stringify(filteredKejadian)}
-            
-            KETENTUAN FORMAT (SANGAT PENTING):
-            1. DILARANG MENGGUNAKAN SIMBOL MARKDOWN (Tanpa #, tanpa *, tanpa **).
-            2. Gunakan huruf kapital untuk setiap JUDUL BAGIAN.
-            3. Gunakan penomoran manual seperti 1., 2., 3. atau a., b., c.
-            4. Tulis dalam Bahasa Indonesia yang formal, santun, dan sangat rapi.
-            5. Susunan Laporan:
-               - LAPORAN HARIAN GURU PIKET UPT SMPN 4 MAPPEDECENG
-               - I. IDENTITAS PETUGAS DAN WAKTU
-               - II. REKAPITULASI KEDISIPLINAN SISWA (Rangkum secara jelas per kategori)
-               - III. REKAPITULASI KEHADIRAN GURU & TAMU (Sebutkan siapa saja dan keperluannya)
-               - IV. CATATAN PERISTIWA MENONJOL (Narasi dari kejadian khusus)
-               - V. EVALUASI DAN REKOMENDASI UNTUK SEKOLAH
-        `;
-        
-        const response = await ai.models.generateContent({
-            model: 'gemini-3-flash-preview',
-            contents: prompt,
-        });
-
-        const rawText = response.text || "Terjadi kesalahan teknis saat AI menyusun laporan.";
-        
-        // Pembersihan simbol tambahan secara otomatis jika AI membandel
-        const cleanText = rawText
-            .replace(/[#*`_]/g, '')
-            .replace(/\n{3,}/g, '\n\n')
-            .trim();
+        const res = await ai.models.generateContent({ model: 'gemini-3-flash-preview', contents: prompt });
+        const cleanText = (res.text || "").replace(/[#*`_]/g, '').trim();
 
         localData.laporanAI = cleanText;
         if (resultArea) resultArea.innerText = cleanText;
         document.getElementById('btn-copy-report')?.classList.remove('hidden');
     } catch (e: any) {
-        alert('Gagal Generate AI: ' + e.message);
+        alert('AI Error: ' + e.message);
     } finally {
         loader?.classList.add('hidden');
         resultArea?.classList.remove('hidden');
@@ -410,17 +365,13 @@ async function syncData() {
     };
 
     try {
-        await fetch(url, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify(payload)
-        });
-        alert('DATA BERHASIL DISINKRONKAN KE GOOGLE SHEETS!');
+        await fetch(url, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+        alert('Berhasil sinkron!');
         localData = { logSiswa: [], absenGuru: [], bukuTamu: [], logKejadian: [], laporanAI: '' };
         (document.getElementById('input-kejadian-penting') as HTMLTextAreaElement).value = '';
-        setTimeout(() => fetchInitialData(), 1500);
+        setTimeout(fetchInitialData, 1000);
     } catch (e) {
-        alert('Gagal sinkronisasi. Pastikan URL Script sudah benar.');
+        alert('Gagal sinkron.');
     } finally {
         statusEl?.classList.add('hidden');
     }
@@ -429,7 +380,7 @@ async function syncData() {
 function saveSettings() {
     const url = (document.getElementById('config-gas-url') as HTMLInputElement).value;
     localStorage.setItem('piket_gas_url', url);
-    alert('URL Endpoint disimpan!');
+    alert('Simpan URL!');
 }
 
 function loadSettings() {
@@ -445,7 +396,7 @@ function saveGuruPiket() {
         namaGuruPiket = input.value;
         localStorage.setItem('piket_guru_nama', namaGuruPiket);
         updateGuruDisplay();
-        alert('Nama Guru Piket aktif hari ini telah disimpan.');
+        alert('Nama guru piket diset.');
     }
 }
 
@@ -457,8 +408,6 @@ function updateGuruDisplay() {
 function copyReportToClipboard() {
     const t = document.getElementById('ai-result')?.innerText;
     if (t) {
-        navigator.clipboard.writeText(t).then(() => {
-            alert('Laporan berhasil disalin! Silakan tempelkan (Paste) di WhatsApp.');
-        });
+        navigator.clipboard.writeText(t).then(() => alert('Teks laporan disalin!'));
     }
 }
